@@ -8,6 +8,7 @@ import (
 )
 
 func SendMessage(channelId string, message string) {
+    log.Printf("send message: ", channelId, message)
     params := url.Values{}
     params.Add("text", message)
     params.Add("channel", channelId)

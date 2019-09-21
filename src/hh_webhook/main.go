@@ -2,9 +2,8 @@ package main
 
 import (
 	"context"
-        "regexp"
         "main/sender"
-        "main/store"
+	"main/chatbot"
 	"encoding/json"
 	"errors"
 	"github.com/aws/aws-lambda-go/events"
@@ -45,7 +44,7 @@ var Travis = SlackUser{
 
 var Alex = SlackUser{
     Name: "alex",
-    ChannelId: "DNL27EDE0",
+    ChannelId: "DNLGGKBGD",
     UserId: "UND2UQZB9",
 }
 
@@ -55,23 +54,24 @@ var Peter = SlackUser{
     UserId: "UNNRQT6BY",
 }
 
+var Patient = Alex
+var Volunteer = Travis
+
 func isPatientByUserId(userId string) bool {
-    return userId == Peter.UserId
+    return userId == Patient.UserId
 }
 
 func isVolunteerByUserId(userId string) bool {
-    return userId == Travis.UserId
+    return userId == Volunteer.UserId
 }
 
 func getPatient() SlackUser {
-    return Peter
+    return Patient
 }
 
 func getVolunteer() SlackUser {
-    return Travis
+    return Volunteer
 }
-
-
 
 func Handler(context context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	log.Printf("1. Processing Lambda request %s\n", request.RequestContext.RequestID)
@@ -86,31 +86,44 @@ func Handler(context context.Context, request events.APIGatewayProxyRequest) (ev
 		log.Print("Error: Could not decode body!", err)
 	}
 
-	log.Printf("Request: ", request.Body)
+	r, _ := json.Marshal(v)
+	log.Printf("Request: ", string(r))
 
-        userId := v.Event.User
+	userId := v.Event.User
 
-        isPatient := isPatientByUserId(userId)
-        isVolunteer := isVolunteerByUserId(userId)
+	isPatient := isPatientByUserId(userId)
+	isVolunteer := isVolunteerByUserId(userId)
 
 	if isVolunteer {
-	    sender.SendMessage(getPatient().ChannelId, v.Event.Text)
+		sender.SendMessage(getPatient().ChannelId, v.Event.Text)
 	} else if isPatient {
-            ogMsg := v.Event.Text
-            store.AddTranscriptRecord(userId, ogMsg)
-            jumper, _ := regexp.MatchString("jump", ogMsg)
+            //ogMsg := v.Event.Text
+            //store.AddTranscriptRecord(userId, ogMsg)
+            //jumper, _ := regexp.MatchString("jump", ogMsg)
+			//
+            //if jumper {
+            //    sender.SendMessage(getPatient().ChannelId, "don't do it call: XXX-XXXX-XXXX")
+            //    sender.SendMessage(getVolunteer().ChannelId, "WARNING: alex is on the edge")
+            //} else {
+            //    sender.SendMessage(getVolunteer().ChannelId, ogMsg)
+            //}
+		replyMessage, err := chatbot.SendToLex(v.Event.Text, getPatient().UserId)
+		sender.SendMessage(getPatient().ChannelId, replyMessage)
+		if err != nil {
+			sender.SendMessage(getVolunteer().ChannelId, v.Event.Text)
+		}
 
-            if jumper {
-                sender.SendMessage(getPatient().ChannelId, "don't do it call: XXX-XXXX-XXXX")
-                sender.SendMessage(getVolunteer().ChannelId, "WARNING: alex is on the edge")
-            } else {
-                sender.SendMessage(getVolunteer().ChannelId, ogMsg)
-            }
 	}
-
+	//if v.Type == "url_verification" {
+	//	return events.APIGatewayProxyResponse{
+	//		StatusCode: 200,
+	//		Body:       v.Challenge,
+	//	}, nil
+	//} else if v.Type == "event_callback" {
+	//	sender.SendMessage("Hello there cowboy")
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Body: v.Challenge,
+		Body:       v.Challenge,
 	}, nil
 }
 
