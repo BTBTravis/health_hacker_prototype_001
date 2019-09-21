@@ -1,7 +1,3 @@
-provider "aws" {
-  region     = "eu-west-1"
-}
-
 resource "aws_iam_role" "hh_webhook_iam_role" {
   name = "health-hacker-prototype-001-webhook"
 
@@ -15,10 +11,10 @@ resource "aws_iam_role_policy" "hh_webhook_iam_policy" {
 }
 
 resource "aws_lambda_function" "hh_webhook_lambda" {
-  filename = "${path.module}/../build/telegram_webhook/function.zip"
-  function_name = "${local.app_name}-telegram-webhook"
-  role = aws_iam_role.lambda_telegram_webhook.arn
+  filename = "${path.module}/../build/hh_webhook/function.zip"
+  function_name = "hh-webhook"
+  role = aws_iam_role.hh_webhook_iam_role.arn
   handler = "main"
   runtime = "go1.x"
-  source_code_hash = filebase64sha256("${path.module}/../build/telegram_webhook/function.zip")
+  source_code_hash = filebase64sha256("${path.module}/../build/hh_webhook/function.zip")
 }
