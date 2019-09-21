@@ -17,4 +17,11 @@ resource "aws_lambda_function" "hh_webhook_lambda" {
   handler = "main"
   runtime = "go1.x"
   source_code_hash = filebase64sha256("${path.module}/../build/hh_webhook/function.zip")
+
+
+  environment {
+    variables = {
+      SLACK_API_KEY = var.slack_api_key
+    }
+  }
 }

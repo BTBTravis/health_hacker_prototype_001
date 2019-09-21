@@ -10,4 +10,4 @@ build/hh_webhook/main: src/hh_webhook/*
 	cd build/hh_webhook && zip function.zip main
 
 deploy: pack
-	cd terraform && terraform apply
+	cd terraform && terraform apply -var-file="testing.tfvars"

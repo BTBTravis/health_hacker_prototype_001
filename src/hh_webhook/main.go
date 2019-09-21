@@ -31,19 +31,46 @@ type SlackEvent struct {
 }
 
 type SlackUser struct{
+    Name string
     ChannelId string
     UserId string
 }
 
 var Travis = SlackUser{
+    Name: "travis",
     ChannelId: "DN7L5L8AW",
     UserId: "UMYDK4Q66",
 }
 
 var Alex = SlackUser{
+    Name: "alex",
     ChannelId: "DNL27EDE0",
     UserId: "UND2UQZB9",
 }
+
+var Peter = SlackUser{
+    Name: "peter",
+    ChannelId: "DN95RPK6F",
+    UserId: "UNNRQT6BY",
+}
+
+func isPatientByUserId(userId string) bool {
+    return userId == Peter.UserId
+}
+
+func isVolunteerByUserId(userId string) bool {
+    return userId == Travis.UserId
+}
+
+func getPatient() SlackUser {
+    return Peter
+}
+
+func getVolunteer() SlackUser {
+    return Travis
+}
+
+
 
 func Handler(context context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	log.Printf("1. Processing Lambda request %s\n", request.RequestContext.RequestID)
@@ -60,17 +87,22 @@ func Handler(context context.Context, request events.APIGatewayProxyRequest) (ev
 
 	log.Printf("Request: ", request.Body)
 
-	if v.Event.User == Travis.UserId {
-	    sender.SendMessage(Alex.ChannelId, v.Event.Text)
-	} else if v.Event.User == Alex.UserId {
+        userId := v.Event.User
+
+        isPatient := isPatientByUserId(userId)
+        isVolunteer := isVolunteerByUserId(userId)
+
+	if isVolunteer {
+	    sender.SendMessage(getPatient().ChannelId, v.Event.Text)
+	} else if isPatient {
             ogMsg := v.Event.Text
             jumper, _ := regexp.MatchString("jump", ogMsg)
 
             if jumper {
-                sender.SendMessage(Alex.ChannelId, "don't do it call: XXX-XXXX-XXXX")
-                sender.SendMessage(Travis.ChannelId, "WARNING: alex is on the edge")
+                sender.SendMessage(getPatient().ChannelId, "don't do it call: XXX-XXXX-XXXX")
+                sender.SendMessage(getVolunteer().ChannelId, "WARNING: alex is on the edge")
             } else {
-                sender.SendMessage(Travis.ChannelId, ogMsg)
+                sender.SendMessage(getVolunteer().ChannelId, ogMsg)
             }
 	}
 

@@ -1,6 +1,7 @@
 package sender
 
 import (
+    "os"
     "log"
     "net/http"
     "net/url"
@@ -10,7 +11,14 @@ func SendMessage(channelId string, message string) {
     params := url.Values{}
     params.Add("text", message)
     params.Add("channel", channelId)
-    params.Add("token", "xoxb-752798852689-756983711187-QPM8GGpBrrUV14NzWEIzR7om")
+    key, key_exists := os.LookupEnv("SLACK_API_KEY")
+
+    if key_exists {
+        params.Add("token", key)
+    } else {
+        log.Println("Missing SLACK_API_KEY")
+    }
+
     slackURL := "https://slack.com/api/chat.postMessage?" + params.Encode()
 
     log.Println(slackURL)
