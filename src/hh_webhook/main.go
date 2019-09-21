@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+        "main/sender"
 	"encoding/json"
 	"errors"
 	"github.com/aws/aws-lambda-go/events"
@@ -29,6 +30,8 @@ func Handler(context context.Context, request events.APIGatewayProxyRequest) (ev
 	}
 
 	log.Printf("Request: ", request.Body)
+
+        sender.SendMessage("Hello there cowboy")
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
