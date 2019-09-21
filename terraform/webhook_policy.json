@@ -7,7 +7,7 @@
                 "logs:CreateLogGroup",
                 "logs:CreateLogStream",
                 "logs:PutLogEvents",
-                "sqs:SendMessage"
+                "dynamodb:*"
             ],
             "Resource": "*"
         }

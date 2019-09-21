@@ -25,3 +25,14 @@ resource "aws_lambda_function" "hh_webhook_lambda" {
     }
   }
 }
+
+resource "aws_dynamodb_table" "hh_webhook_db" {
+  name              = "patientData"
+  read_capacity     = 1
+  write_capacity    = 1
+  hash_key          = "UserId"
+  attribute {
+    name = "UserId"
+    type = "S"
+  }
+}

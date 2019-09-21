@@ -4,6 +4,7 @@ import (
 	"context"
         "regexp"
         "main/sender"
+        "main/store"
 	"encoding/json"
 	"errors"
 	"github.com/aws/aws-lambda-go/events"
@@ -96,6 +97,7 @@ func Handler(context context.Context, request events.APIGatewayProxyRequest) (ev
 	    sender.SendMessage(getPatient().ChannelId, v.Event.Text)
 	} else if isPatient {
             ogMsg := v.Event.Text
+            store.AddCommonWords(userId, ogMsg)
             jumper, _ := regexp.MatchString("jump", ogMsg)
 
             if jumper {
