@@ -97,7 +97,7 @@ func Handler(context context.Context, request events.APIGatewayProxyRequest) (ev
 	    sender.SendMessage(getPatient().ChannelId, v.Event.Text)
 	} else if isPatient {
             ogMsg := v.Event.Text
-            store.AddCommonWords(userId, ogMsg)
+            store.AddTranscriptRecord(userId, ogMsg)
             jumper, _ := regexp.MatchString("jump", ogMsg)
 
             if jumper {

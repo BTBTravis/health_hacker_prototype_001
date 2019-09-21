@@ -2,6 +2,8 @@ package store
 
 import (
     "log"
+    "time"
+    "strconv"
 
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
@@ -10,21 +12,26 @@ import (
 )
 
 type UserData struct {
-    UserId   string
-    CommonWords  string
+    UserId  string `type:"string"`
+    Message string `type:"string"`
+    TimeStamp int64
 }
 
-func AddCommonWords(userId string, words string) {
-    log.Println("====== Saving common words to db ======")
+var storeTable = aws.String("patientData")
+
+func AddTranscriptRecord(userId string, msg string) {
     sess := session.Must(session.NewSessionWithOptions(session.Options{
         SharedConfigState: session.SharedConfigEnable,
     }))
 
     svc := dynamodb.New(sess)
 
+    nowInt := time.Now().Unix()
+    nowStr := strconv.FormatInt(nowInt, 10)
     rawNewRecord := UserData{
-        UserId: userId,
-        CommonWords: words,
+        UserId: userId + "-" + nowStr,
+        Message: msg,
+        TimeStamp: nowInt,
     }
 
     newRecord, err := dynamodbattribute.MarshalMap(rawNewRecord)
@@ -34,7 +41,7 @@ func AddCommonWords(userId string, words string) {
 
     input := &dynamodb.PutItemInput{
         Item:      newRecord,
-        TableName: aws.String("patientData"),
+        TableName: storeTable,
     }
 
     _, err = svc.PutItem(input)
@@ -43,5 +50,4 @@ func AddCommonWords(userId string, words string) {
         log.Println(err.Error())
     }
 }
-
 
