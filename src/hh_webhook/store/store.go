@@ -20,10 +20,10 @@ var transcriptTable = aws.String("patientTranscripts")
 var modeTable = aws.String("patientMode")
 
 type Item struct {
-    Mode bool
+    Mode string
 }
 
-func getMode(userId string) bool {
+func GetMode(userId string) string {
     record := dbGet(modeTable, dynamodb.GetItemInput{
 	TableName: modeTable,
 	Key: map[string]*dynamodb.AttributeValue{

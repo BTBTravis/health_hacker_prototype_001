@@ -103,22 +103,28 @@ func Handler(context context.Context, request events.APIGatewayProxyRequest) (ev
 	if isVolunteer {
 		sender.SendMessage(getPatient().ChannelId, v.Event.Text)
 	} else if isPatient {
-            store.PutMode(userId, MODE_AI)
-            //ogMsg := v.Event.Text
-            //jumper, _ := regexp.MatchString("jump", ogMsg)
-			//
-            //if jumper {
-            //    sender.SendMessage(getPatient().ChannelId, "don't do it call: XXX-XXXX-XXXX")
-            //    sender.SendMessage(getVolunteer().ChannelId, "WARNING: alex is on the edge")
-            //} else {
-            //    sender.SendMessage(getVolunteer().ChannelId, ogMsg)
-            //}
-            replyMessage, err := chatbot.SendToLex(v.Event.Text, getPatient().UserId)
-            sender.SendMessage(getPatient().ChannelId, replyMessage)
-            if err != nil {
-                // TODO: send chat recap to volunteer
-                sender.SendMessage(getVolunteer().ChannelId, v.Event.Text)
-            }
+	    currentMode := store.GetMode(userId)
+	    ogMsg := v.Event.Text
+	    if currentMode == MODE_HUMAN {
+		sender.SendMessage(getVolunteer().ChannelId, ogMsg)
+	    } else {
+		//ogMsg := v.Event.Text
+		//jumper, _ := regexp.MatchString("jump", ogMsg)
+			    //
+		//if jumper {
+		//    sender.SendMessage(getPatient().ChannelId, "don't do it call: XXX-XXXX-XXXX")
+		//    sender.SendMessage(getVolunteer().ChannelId, "WARNING: alex is on the edge")
+		//} else {
+		//    sender.SendMessage(getVolunteer().ChannelId, ogMsg)
+		//}
+		replyMessage, err := chatbot.SendToLex(v.Event.Text, getPatient().UserId)
+		sender.SendMessage(getPatient().ChannelId, replyMessage)
+		if err != nil {
+		    // TODO: send chat recap to volunteer
+		    store.PutMode(userId, MODE_HUMAN)
+		    sender.SendMessage(getVolunteer().ChannelId, v.Event.Text)
+		}
+	    }
 	}
 	//if v.Type == "url_verification" {
 	//	return events.APIGatewayProxyResponse{
