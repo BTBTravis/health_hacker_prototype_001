@@ -3,6 +3,7 @@ package main
 import (
 	"context"
         "main/sender"
+        "main/store"
 	"main/chatbot"
 	"encoding/json"
 	"errors"
@@ -54,8 +55,13 @@ var Peter = SlackUser{
     UserId: "UNNRQT6BY",
 }
 
-var Patient = Alex
+var Patient = Peter
 var Volunteer = Travis
+
+const (
+  MODE_AI = "ai"
+  MODE_HUMAN = "human"
+)
 
 func isPatientByUserId(userId string) bool {
     return userId == Patient.UserId
@@ -97,8 +103,8 @@ func Handler(context context.Context, request events.APIGatewayProxyRequest) (ev
 	if isVolunteer {
 		sender.SendMessage(getPatient().ChannelId, v.Event.Text)
 	} else if isPatient {
+            store.PutMode(userId, MODE_AI)
             //ogMsg := v.Event.Text
-            //store.AddTranscriptRecord(userId, ogMsg)
             //jumper, _ := regexp.MatchString("jump", ogMsg)
 			//
             //if jumper {
@@ -107,12 +113,12 @@ func Handler(context context.Context, request events.APIGatewayProxyRequest) (ev
             //} else {
             //    sender.SendMessage(getVolunteer().ChannelId, ogMsg)
             //}
-		replyMessage, err := chatbot.SendToLex(v.Event.Text, getPatient().UserId)
-		sender.SendMessage(getPatient().ChannelId, replyMessage)
-		if err != nil {
-			sender.SendMessage(getVolunteer().ChannelId, v.Event.Text)
-		}
-
+            replyMessage, err := chatbot.SendToLex(v.Event.Text, getPatient().UserId)
+            sender.SendMessage(getPatient().ChannelId, replyMessage)
+            if err != nil {
+                // TODO: send chat recap to volunteer
+                sender.SendMessage(getVolunteer().ChannelId, v.Event.Text)
+            }
 	}
 	//if v.Type == "url_verification" {
 	//	return events.APIGatewayProxyResponse{
